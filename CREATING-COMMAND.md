@@ -9,7 +9,7 @@
 In Claude Code, type:
 
 ```
-Read https://github.com/mfagerlund/mcp-on-demand/blob/main/CREATING-COMMAND.md and create a /debug-web-ui command that can investigate web pages using chrome-devtools-mcp
+Read https://github.com/mfagerlund/mcp-on-demand/blob/master/CREATING-COMMAND.md and create a /debug-web-ui command that can investigate web pages using chrome-devtools-mcp
 ```
 
 Then use it naturally:

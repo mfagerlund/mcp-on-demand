@@ -9,7 +9,7 @@
 In Claude Code, type:
 
 ```
-Read https://github.com/mfagerlund/mcp-on-demand/blob/main/CREATING-AGENT.md and create a web-testing agent that can test web applications using chrome-devtools-mcp
+Read https://github.com/mfagerlund/mcp-on-demand/blob/master/CREATING-AGENT.md and create a web-testing agent that can test web applications using chrome-devtools-mcp
 ```
 
 Then launch it:

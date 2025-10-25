@@ -9,7 +9,7 @@
 In Claude Code, type:
 
 ```
-Read https://github.com/mfagerlund/mcp-on-demand/blob/main/CREATING-SKILL.md and create a web debugging skill that can inspect pages, take screenshots, and analyze DOM using chrome-devtools-mcp
+Read https://github.com/mfagerlund/mcp-on-demand/blob/master/CREATING-SKILL.md and create a web debugging skill that can inspect pages, take screenshots, and analyze DOM using chrome-devtools-mcp
 ```
 
 Then use it naturally when needed:

@@ -7,12 +7,12 @@ Load MCP servers on-demand instead of keeping them in context permanently. Zero 
 **Setup:** In Claude Code, type:
 
 ```
-Read https://github.com/mfagerlund/mcp-on-demand/blob/main/README.md and follow the instructions to set up MCP On Demand
+Read https://github.com/mfagerlund/mcp-on-demand/blob/master/README.md and follow the instructions to set up MCP On Demand
 ```
 
 Example using chrome-devtools-mcp:
 ```
-Read https://github.com/mfagerlund/mcp-on-demand/blob/main/README.md and follow the instructions to set up MCP On Demand for https://github.com/ChromeDevTools/chrome-devtools-mcp
+Read https://github.com/mfagerlund/mcp-on-demand/blob/master/README.md and follow the instructions to set up MCP On Demand for https://github.com/ChromeDevTools/chrome-devtools-mcp
 ```
 
 **Next Steps:**
