@@ -7,7 +7,7 @@ Create a skill (auto-activates based on context) that uses MCP On Demand.
 **Example:**
 
 ```
-Read https://github.com/mfagerlund/mcp-on-demand/blob/master/CREATE-SKILL.md and create a web debugging skill using chrome-devtools-mcp
+Read https://raw.githubusercontent.com/mfagerlund/mcp-on-demand/refs/heads/master/CREATE-SKILL.md and create a web debugging skill using chrome-devtools-mcp
 ```
 
 Use it naturally:
