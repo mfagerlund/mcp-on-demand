@@ -1,190 +1,160 @@
 # Create Command
 
-## For Humans
+Explicit `/command-name` that uses MCP On Demand. User invokes manually.
 
-Create a command (invoked with `/command-name`) that uses MCP On Demand.
+## Setup Required
 
-**Example:**
-
-```
-Read https://raw.githubusercontent.com/mfagerlund/mcp-on-demand/refs/heads/master/CREATE-COMMAND.md and create a /debug-web-ui command using chrome-devtools-mcp
-```
-
-Use it:
-```
-/debug-web-ui http://localhost:5173 - submit button fails
+Run once in the mcp-on-demand directory:
+```bash
+cd <mcp-on-demand-directory>
+npm install
+npm run setup
+npm link
 ```
 
-**Note:** The MCP should already be installed before creating the command. See "Installing an MCP" section below for reference.
+- `npm run setup` creates `~/.mcp-on-demand/installation.json`
+- `npm link` makes `mcp-on-demand` command available globally (restart terminal after this)
 
-## For LLMs
+**Verify CLI works:**
+```bash
+mcp-on-demand list
+```
 
-**Prerequisites:**
-- [README.md](README.md) must be set up
-- The target MCP must already be installed on the system
+If command not found, restart your terminal or use full path: `node /path/to/mcp-on-demand/bin/mcp-on-demand.js`
 
-### CRITICAL: Path Discovery
+## Configure Target MCP
 
-Before creating the command, you MUST:
+Add your MCP to `~/.mcp-on-demand/mcp-configs.json`:
 
-1. **Find mcp-on-demand installation path**:
-   - Check if already installed: search for `session-manager.js` or `session-cli.js`
-   - If not found, ask user: "Where is mcp-on-demand installed?"
-   - Store this as `<mcp-on-demand-path>`
+**Windows:**
+```json
+{
+  "chrome-devtools-mcp": {
+    "command": "node",
+    "args": ["C:/Dev/chrome-devtools-mcp/build/src/index.js"]
+  }
+}
+```
 
-2. **Find target MCP installation path**:
-   - The requested MCP should already be installed
-   - Ask user: "Where is <mcp-name> installed?"
-   - Store this as `<target-mcp-path>`
+**macOS/Linux:**
+```json
+{
+  "chrome-devtools-mcp": {
+    "command": "node",
+    "args": ["/home/user/chrome-devtools-mcp/build/src/index.js"]
+  }
+}
+```
 
-3. **Verify configuration**:
-   - Check `<mcp-on-demand-path>/src/session-manager.js` for MCP_CONFIGS
-   - If the target MCP is not configured, add it with the correct path
+**Verify configuration works:**
+```bash
+mcp-on-demand start chrome-devtools-mcp
+mcp-on-demand call chrome-devtools-mcp list_pages '{}'
+mcp-on-demand stop chrome-devtools-mcp
+```
 
-**DO NOT create the command until you have ACTUAL, REAL paths** (not placeholders like `<mcp-on-demand-path>`).
+If successful, you'll see `{"success": true, ...}` responses.
 
-### Installing an MCP (Reference Only)
+## Create Command
 
-This section is for informational purposes only. The MCP should already be installed before you create a command.
+Commands live in `~/.claude/commands/<command-name>.md`
 
-**Example: Installing chrome-devtools-mcp**
-
-If you needed to install chrome-devtools-mcp, you would:
-
-1. Clone the repository:
-   ```bash
-   cd /path/to/your/mcps/folder
-   git clone https://github.com/ChromeDevTools/chrome-devtools-mcp.git
-   cd chrome-devtools-mcp
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Build (if required):
-   ```bash
-   npm run build
-   ```
-
-4. Configure in `mcp-on-demand/src/session-manager.js`:
-   ```javascript
-   const MCP_CONFIGS = {
-     'chrome-devtools-mcp': {
-       command: 'node',
-       args: ['/path/to/your/mcps/folder/chrome-devtools-mcp/build/index.js'],
-       env: {}
-     }
-   };
-   ```
-
-**However, for creating commands, assume the MCP is already installed and configured.**
-
-### Structure
-
-Commands are markdown files in `~/.claude/commands/<command-name>.md`:
-
-The generated command MUST include a "Configuration" section with ACTUAL paths:
+Create the command file:
+```bash
+mkdir -p ~/.claude/commands
+```
 
 ```markdown
 ---
-description: Brief description
+description: Brief description of what this command does
 ---
 
 # Command Name
 
-## Configuration
+**MCP:** `mcp-name`
 
-**MCP On Demand Path:** /actual/path/to/mcp-on-demand
-**Target MCP Path:** /actual/path/to/target-mcp
-**MCP Name:** target-mcp-name
-
-**Ensure session manager is running:**
-```bash
-if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
-  node /actual/path/to/mcp-on-demand/src/session-manager.js &
-  sleep 2
-fi
-```
-
-## Usage
-
-Extract parameters from user's message (URLs, paths, etc.).
+Extract parameters from user message.
 
 **Start session:**
-```bash
-node /actual/path/to/mcp-on-demand/src/session-cli.js start target-mcp-name
-```
+\```bash
+mcp-on-demand start mcp-name
+\```
 
-**Execute batch:**
-```bash
-node /actual/path/to/mcp-on-demand/src/session-cli.js batch target-mcp-name '[
-  {"tool":"tool-name","args":{...}},
-  {"tool":"tool-name","args":{...}}
+**Call tools (when checking output between steps):**
+\```bash
+mcp-on-demand call mcp-name tool-name '{"arg":"value"}'
+\```
+
+**Or batch (for sequential operations):**
+\```bash
+mcp-on-demand batch mcp-name '[
+  {"tool":"tool1","args":{...}},
+  {"tool":"tool2","args":{...}}
 ]'
-```
+\```
 
 **Stop session:**
-```bash
-node /actual/path/to/mcp-on-demand/src/session-cli.js stop target-mcp-name
+\```bash
+mcp-on-demand stop mcp-name
+\```
+
+Report findings with analysis and specific recommendations.
 ```
 
-After executing, analyze and report findings.
-```
+## Complete Example
 
-### Example
-
-Create `~/.claude/commands/debug-web-ui.md`:
+`~/.claude/commands/debug-web.md`:
 
 ```markdown
 ---
-description: Debug web UIs using chrome-devtools-mcp
+description: Debug web UIs using Chrome DevTools
 ---
 
 # Debug Web UI
 
-## Configuration
+**MCP:** `chrome-devtools-mcp`
 
-**MCP On Demand Path:** /home/user/projects/mcp-on-demand
-**Target MCP Path:** /home/user/mcps/chrome-devtools-mcp
-**MCP Name:** chrome-devtools-mcp
+Extract URL from user message.
 
-**Ensure session manager is running:**
-```bash
-if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
-  node /home/user/projects/mcp-on-demand/src/session-manager.js &
-  sleep 2
-fi
-```
+**Start:**
+\```bash
+mcp-on-demand start chrome-devtools-mcp
+\```
 
-## Usage
-
-Extract URL from user's message. Use chrome-devtools-mcp to capture screenshot, page content, and console logs.
-
-**Start session:**
-```bash
-node /home/user/projects/mcp-on-demand/src/session-cli.js start chrome-devtools-mcp
-```
-
-**Execute batch:**
-```bash
-node /home/user/projects/mcp-on-demand/src/session-cli.js batch chrome-devtools-mcp '[
-  {"tool":"new_page","args":{"url":"$URL"}},
-  {"tool":"take_screenshot","args":{"filePath":"debug.png"}},
-  {"tool":"get_page_content","args":{}},
-  {"tool":"get_console_logs","args":{}}
+**Debug:**
+\```bash
+mcp-on-demand batch chrome-devtools-mcp '[
+  {"tool":"navigate_page","args":{"url":"$URL"}},
+  {"tool":"take_snapshot","args":{}},
+  {"tool":"list_console_messages","args":{}},
+  {"tool":"take_screenshot","args":{"filePath":"./debug.png"}}
 ]'
+\```
+
+**Stop:**
+\```bash
+mcp-on-demand stop chrome-devtools-mcp
+\```
+
+Analyze results with screenshots and console output. Provide specific findings.
 ```
 
-**Stop session:**
+**Invocation:** User types `/debug-web http://localhost:5173 - submit fails`
+
+## Session Manager
+
+**IMPORTANT:** The session manager **auto-starts** on first CLI use. You should NEVER need to manually start it unless troubleshooting.
+
+To manually start (only for troubleshooting):
 ```bash
-node /home/user/projects/mcp-on-demand/src/session-cli.js stop chrome-devtools-mcp
+mcp-on-demand manager &
 ```
 
-Analyze results and provide specific findings with screenshots and console output.
-```
+## Troubleshooting
 
-**Invocation:** `/debug-web-ui http://localhost:5173 - submit button fails`
-
-The LLM extracts URL and context, executes the session pattern with the configured paths.
+| Issue | Solution |
+|-------|----------|
+| `mcp-on-demand: command not found` | Run `npm link` in mcp-on-demand directory, or use full path |
+| `Unknown MCP: xyz` | Add to `~/.mcp-on-demand/mcp-configs.json` |
+| Config test fails | Verify MCP path exists and MCP is built (`npm run build` in MCP dir) |
+| Session manager not responding | Kill stale process: `pkill -f session-manager`, then retry |
