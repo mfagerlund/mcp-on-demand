@@ -2,7 +2,7 @@
 
 ## For Humans
 
-Create a skill (auto-activates based on context) that uses MCP On Demand (assuming it's installed and Calude Code knows where).
+Create a skill (auto-activates based on context) that uses MCP On Demand (assuming the MCP is installed and Calude Code knows where).
 
 **Example:**
 
