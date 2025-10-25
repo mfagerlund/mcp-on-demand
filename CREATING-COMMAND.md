@@ -2,10 +2,14 @@
 
 ## For Humans
 
+**What this does:** Creates a Claude Code command (invoked with `/command-name`) that uses MCP On Demand to access chrome-devtools-mcp capabilities without permanent context pollution.
+
+**Example - Debug web UI command:**
+
 In Claude Code, type:
 
 ```
-Read https://github.com/mfagerlund/mcp-on-demand/blob/main/CREATING-COMMAND.md and create a screenshot command that uses chrome-devtools-mcp
+Read https://github.com/mfagerlund/mcp-on-demand/blob/main/CREATING-COMMAND.md and create a /debug-ui command that opens a URL, takes a screenshot, and gets the page content using chrome-devtools-mcp
 ```
 
 **Prerequisites:** Read [README.md](README.md) first to set up MCP On Demand.
@@ -14,7 +18,7 @@ Read https://github.com/mfagerlund/mcp-on-demand/blob/main/CREATING-COMMAND.md a
 
 ### Overview
 
-Commands in Claude Code are markdown files in `~/.claude/commands/` that expand to full prompts when invoked.
+Commands in Claude Code are markdown files in `~/.claude/commands/` that expand to full prompts when invoked with `/command-name`.
 
 **Prerequisites:** Ensure mcp-on-demand is installed per [README.md](README.md).
 
@@ -36,24 +40,24 @@ Instructions for the LLM to execute.
 \```
 ```
 
-### Example: Screenshot Command
+### Example: Web UI Debug Command
 
 **Ask the user where mcp-on-demand is installed** (or use known path if in context).
 
-Create `~/.claude/commands/screenshot.md`:
+Create `~/.claude/commands/debug-ui.md`:
 
 ```markdown
 ---
-description: Take a screenshot of a URL using chrome-devtools-mcp
+description: Debug a web UI by capturing screenshot and page content using chrome-devtools-mcp
 ---
 
-# Screenshot Command
+# Debug UI Command
 
-Take a screenshot of the URL and save to the specified path.
+Debug the web UI at the specified URL by capturing a screenshot and extracting page content.
 
 Parameters:
-- url: The URL to screenshot
-- output: Path to save screenshot
+- url: The URL to debug
+- output: Path to save screenshot (optional, defaults to debug-screenshot.png)
 
 \```bash
 # Ensure session manager is running
@@ -65,23 +69,26 @@ fi
 # Start session (--no-show-tools since we know what we need)
 node <mcp-on-demand-path>/src/session-cli.js start chrome-devtools-mcp --no-show-tools
 
-# Batch: open page and screenshot
+# Batch: open page, screenshot, and get content
 node <mcp-on-demand-path>/src/session-cli.js batch chrome-devtools-mcp '[
   {"tool":"new_page","args":{"url":"{{url}}"}},
-  {"tool":"take_screenshot","args":{"filePath":"{{output}}"}}
+  {"tool":"take_screenshot","args":{"filePath":"{{output:-debug-screenshot.png}}"}},
+  {"tool":"get_page_content","args":{}}
 ]'
 
 # Stop session
 node <mcp-on-demand-path>/src/session-cli.js stop chrome-devtools-mcp
 
-echo "Screenshot saved to {{output}}"
+echo "Debug info captured for {{url}}"
+echo "Screenshot: {{output:-debug-screenshot.png}}"
 \```
 ```
 
 ### Usage
 
 ```bash
-/screenshot url=http://localhost:5173 output=C:/screenshot.png
+/debug-ui url=http://localhost:5173
+/debug-ui url=http://localhost:5173 output=C:/my-debug.png
 ```
 
 ### Key Patterns
@@ -91,8 +98,36 @@ echo "Screenshot saved to {{output}}"
 3. **Use batch for efficiency** - Multiple tools in one call
 4. **Stop session when done** - Clean up resources
 5. **Use placeholders** - `{{parameter}}` gets replaced by user input
+6. **Default values** - `{{output:-default.png}}` provides fallback
 
 ### Other Command Examples
+
+**Screenshot only:**
+```markdown
+---
+description: Take a screenshot of a URL using chrome-devtools-mcp
+---
+
+# Screenshot Command
+
+Capture a screenshot of {{url}} and save to {{output}}.
+
+\```bash
+if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
+  node <mcp-on-demand-path>/src/session-manager.js &
+  sleep 2
+fi
+
+node <mcp-on-demand-path>/src/session-cli.js start chrome-devtools-mcp --no-show-tools
+node <mcp-on-demand-path>/src/session-cli.js batch chrome-devtools-mcp '[
+  {"tool":"new_page","args":{"url":"{{url}}"}},
+  {"tool":"take_screenshot","args":{"filePath":"{{output}}"}}
+]'
+node <mcp-on-demand-path>/src/session-cli.js stop chrome-devtools-mcp
+
+echo "Screenshot saved to {{output}}"
+\```
+```
 
 **Navigate to URL:**
 ```markdown
