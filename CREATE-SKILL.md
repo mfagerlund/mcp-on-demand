@@ -19,6 +19,26 @@ Debug http://localhost:5173 - submit button isn't working
 
 **Prerequisites:** [README.md](README.md) must be set up.
 
+### CRITICAL: Path Discovery
+
+Before creating the skill, you MUST:
+
+1. **Find mcp-on-demand installation path**:
+   - Check if already installed: search for `session-manager.js` or `session-cli.js`
+   - If not found, ask user: "Where should I install mcp-on-demand?" or "Where is mcp-on-demand installed?"
+   - Store this as `<mcp-on-demand-path>`
+
+2. **Find target MCP installation path**:
+   - Check if the requested MCP is already installed
+   - If not found, ask user: "Where should I install <mcp-name>?" or "Where is <mcp-name> installed?"
+   - Store this as `<target-mcp-path>`
+
+3. **Verify configuration**:
+   - Check `<mcp-on-demand-path>/src/session-manager.js` for MCP_CONFIGS
+   - If the target MCP is not configured, add it with the correct path
+
+**DO NOT create the skill until you have ACTUAL, REAL paths** (not placeholders like `<mcp-on-demand-path>`).
+
 ### Structure
 
 Skills are directories in `~/.claude/skills/<skill-name>/`:
@@ -32,6 +52,8 @@ Skills are directories in `~/.claude/skills/<skill-name>/`:
 
 ### SKILL.md Format
 
+The generated SKILL.md MUST include a "Configuration" section with ACTUAL paths:
+
 ```markdown
 ---
 name: skill-name
@@ -39,6 +61,25 @@ description: Detailed description of when to use this skill
 ---
 
 # Skill Name
+
+## Configuration
+
+**MCP On Demand Path:** /actual/path/to/mcp-on-demand
+**Target MCP Path:** /actual/path/to/target-mcp
+**MCP Name:** target-mcp-name
+
+**Session Manager:**
+```bash
+node /actual/path/to/mcp-on-demand/src/session-manager.js
+```
+
+**Ensure session manager is running:**
+```bash
+if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
+  node /actual/path/to/mcp-on-demand/src/session-manager.js &
+  sleep 2
+fi
+```
 
 ## When to Use
 
@@ -49,7 +90,23 @@ description: Detailed description of when to use this skill
 
 Extract parameters from user's message.
 
-Use session pattern from README.md: ensure session manager running → start → batch → stop.
+**Start session:**
+```bash
+node /actual/path/to/mcp-on-demand/src/session-cli.js start target-mcp-name
+```
+
+**Execute batch:**
+```bash
+node /actual/path/to/mcp-on-demand/src/session-cli.js batch target-mcp-name '[
+  {"tool":"tool-name","args":{...}},
+  {"tool":"tool-name","args":{...}}
+]'
+```
+
+**Stop session:**
+```bash
+node /actual/path/to/mcp-on-demand/src/session-cli.js stop target-mcp-name
+```
 
 Analyze and report findings.
 ```
@@ -66,6 +123,20 @@ description: Debug web UIs when user describes page issues, broken interactions,
 
 # Web Debug Skill
 
+## Configuration
+
+**MCP On Demand Path:** /home/user/projects/mcp-on-demand
+**Target MCP Path:** /home/user/mcps/chrome-devtools-mcp
+**MCP Name:** chrome-devtools-mcp
+
+**Ensure session manager is running:**
+```bash
+if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
+  node /home/user/projects/mcp-on-demand/src/session-manager.js &
+  sleep 2
+fi
+```
+
 ## When to Use
 
 - User describes web page issues
@@ -76,15 +147,27 @@ description: Debug web UIs when user describes page issues, broken interactions,
 
 Extract URL from user's message.
 
-Use chrome-devtools-mcp with batch:
-[
+**Start session:**
+```bash
+node /home/user/projects/mcp-on-demand/src/session-cli.js start chrome-devtools-mcp
+```
+
+**Execute batch:**
+```bash
+node /home/user/projects/mcp-on-demand/src/session-cli.js batch chrome-devtools-mcp '[
   {"tool":"new_page","args":{"url":"$URL"}},
   {"tool":"take_screenshot","args":{"filePath":"debug.png"}},
   {"tool":"get_page_content","args":{}},
   {"tool":"get_console_logs","args":{}}
-]
+]'
+```
 
-Follow session pattern from README.md. Analyze and provide specific findings.
+**Stop session:**
+```bash
+node /home/user/projects/mcp-on-demand/src/session-cli.js stop chrome-devtools-mcp
+```
+
+Analyze results and provide specific findings with screenshots and console output.
 ```
 
 **Activation:** Skill auto-activates when user says: "Debug http://localhost:5173 - submit fails"

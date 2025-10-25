@@ -19,9 +19,31 @@ Use it:
 
 **Prerequisites:** [README.md](README.md) must be set up.
 
+### CRITICAL: Path Discovery
+
+Before creating the command, you MUST:
+
+1. **Find mcp-on-demand installation path**:
+   - Check if already installed: search for `session-manager.js` or `session-cli.js`
+   - If not found, ask user: "Where should I install mcp-on-demand?" or "Where is mcp-on-demand installed?"
+   - Store this as `<mcp-on-demand-path>`
+
+2. **Find target MCP installation path**:
+   - Check if the requested MCP is already installed
+   - If not found, ask user: "Where should I install <mcp-name>?" or "Where is <mcp-name> installed?"
+   - Store this as `<target-mcp-path>`
+
+3. **Verify configuration**:
+   - Check `<mcp-on-demand-path>/src/session-manager.js` for MCP_CONFIGS
+   - If the target MCP is not configured, add it with the correct path
+
+**DO NOT create the command until you have ACTUAL, REAL paths** (not placeholders like `<mcp-on-demand-path>`).
+
 ### Structure
 
 Commands are markdown files in `~/.claude/commands/<command-name>.md`:
+
+The generated command MUST include a "Configuration" section with ACTUAL paths:
 
 ```markdown
 ---
@@ -30,9 +52,41 @@ description: Brief description
 
 # Command Name
 
+## Configuration
+
+**MCP On Demand Path:** /actual/path/to/mcp-on-demand
+**Target MCP Path:** /actual/path/to/target-mcp
+**MCP Name:** target-mcp-name
+
+**Ensure session manager is running:**
+```bash
+if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
+  node /actual/path/to/mcp-on-demand/src/session-manager.js &
+  sleep 2
+fi
+```
+
+## Usage
+
 Extract parameters from user's message (URLs, paths, etc.).
 
-Use session pattern from README.md: ensure session manager running → start → batch → stop.
+**Start session:**
+```bash
+node /actual/path/to/mcp-on-demand/src/session-cli.js start target-mcp-name
+```
+
+**Execute batch:**
+```bash
+node /actual/path/to/mcp-on-demand/src/session-cli.js batch target-mcp-name '[
+  {"tool":"tool-name","args":{...}},
+  {"tool":"tool-name","args":{...}}
+]'
+```
+
+**Stop session:**
+```bash
+node /actual/path/to/mcp-on-demand/src/session-cli.js stop target-mcp-name
+```
 
 After executing, analyze and report findings.
 ```
@@ -48,19 +102,47 @@ description: Debug web UIs using chrome-devtools-mcp
 
 # Debug Web UI
 
+## Configuration
+
+**MCP On Demand Path:** /home/user/projects/mcp-on-demand
+**Target MCP Path:** /home/user/mcps/chrome-devtools-mcp
+**MCP Name:** chrome-devtools-mcp
+
+**Ensure session manager is running:**
+```bash
+if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
+  node /home/user/projects/mcp-on-demand/src/session-manager.js &
+  sleep 2
+fi
+```
+
+## Usage
+
 Extract URL from user's message. Use chrome-devtools-mcp to capture screenshot, page content, and console logs.
 
-Follow session pattern from README.md with batch:
-[
+**Start session:**
+```bash
+node /home/user/projects/mcp-on-demand/src/session-cli.js start chrome-devtools-mcp
+```
+
+**Execute batch:**
+```bash
+node /home/user/projects/mcp-on-demand/src/session-cli.js batch chrome-devtools-mcp '[
   {"tool":"new_page","args":{"url":"$URL"}},
   {"tool":"take_screenshot","args":{"filePath":"debug.png"}},
   {"tool":"get_page_content","args":{}},
   {"tool":"get_console_logs","args":{}}
-]
+]'
+```
 
-Analyze results and provide specific findings.
+**Stop session:**
+```bash
+node /home/user/projects/mcp-on-demand/src/session-cli.js stop chrome-devtools-mcp
+```
+
+Analyze results and provide specific findings with screenshots and console output.
 ```
 
 **Invocation:** `/debug-web-ui http://localhost:5173 - submit button fails`
 
-The LLM extracts URL and context, follows the session pattern from README.md.
+The LLM extracts URL and context, executes the session pattern with the configured paths.
