@@ -7,7 +7,7 @@ Create a command (invoked with `/command-name`) that uses MCP On Demand.
 **Example:**
 
 ```
-Read https://raw.githubusercontent.com/mfagerlund/mcp-on-demand/refs/heads/master/CREATE-COMMAND.md and create a /debug-web-ui command using chrome-devtools-mcp
+Read https://raw.githubusercontent.com/mfagerlund/mcp-on-demand/refs/heads/master/CREATE-COMMAND.md and create a /debug-web-ui command using chrome-devtools-mcp (clone from https://github.com/ChromeDevTools/chrome-devtools-mcp.git)
 ```
 
 Use it:
