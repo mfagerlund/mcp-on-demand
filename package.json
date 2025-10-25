@@ -4,12 +4,15 @@
   "description": "Load MCP servers on-demand instead of keeping them in context permanently. Zero token overhead when not in use.",
   "type": "module",
   "main": "src/session-manager.js",
+  "bin": {
+    "mcp-on-demand": "./bin/mcp-on-demand.js"
+  },
   "scripts": {
+    "setup": "node scripts/setup.js",
+    "postinstall": "node scripts/setup.js",
     "start": "node src/session-manager.js",
     "start:bg": "node src/session-manager.js &",
     "cli": "node src/session-cli.js",
-    "health": "curl -s http://127.0.0.1:9876/health | node -e \"process.stdin.on('data', d => console.log(JSON.stringify(JSON.parse(d), null, 2)))\"",
-    "stop": "curl -s http://127.0.0.1:9876 -X POST -H \"Content-Type: application/json\" -d '{\"action\":\"shutdown\"}'",
     "call": "node scripts/mcp-call.js"
   },
   "keywords": ["mcp", "model-context-protocol", "on-demand", "dynamic", "context-efficient", "claude-code"],
