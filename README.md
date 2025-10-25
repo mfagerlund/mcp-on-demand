@@ -1,6 +1,6 @@
-# MCP On Demand
+# MCP On-Demand
 
-Load MCP servers on-demand instead of keeping them in context permanently. Zero token overhead when not in use.
+A lightweight HTTP session manager for Model Context Protocol (MCP) servers. Load MCP servers on-demand instead of keeping them in context permanently. Zero token overhead when not in use.
 
 ## For Humans
 
@@ -12,107 +12,326 @@ Load MCP servers on-demand instead of keeping them in context permanently. Zero 
 
 ## For LLMs
 
+### Prerequisites
+
+1. **Node.js 22+** is required
+2. **MCP servers** must be pre-installed on the user's system
+3. **MCP-on-demand** must be installed and configured
+
 ### Installation
 
-**Ask the user where to install mcp-on-demand if not already installed.**
+**IMPORTANT:** Do NOT attempt to install MCP servers. The user is responsible for installing MCP servers on their system. Only help configure mcp-on-demand to use existing installations.
 
-1. **Clone mcp-on-demand**
+1. **Install mcp-on-demand dependencies**
    ```bash
-   git clone https://github.com/mfagerlund/mcp-on-demand.git <mcp-on-demand-path>
    cd <mcp-on-demand-path>
    npm install
    ```
 
-2. **Clone target MCP** (if user specified one, e.g., chrome-devtools-mcp)
-   
-   **Ask the user where to install the target MCP if not already installed.**
-   
-   Example for chrome-devtools-mcp:
-   ```bash
-   git clone https://github.com/ChromeDevTools/chrome-devtools-mcp.git <mcp-path>
-   cd <mcp-path>
-   npm install
-   npm run build
-   ```
+2. **Create configuration file**
 
-3. **Configure MCP** - Edit `<mcp-on-demand-path>/src/session-manager.js`
-   
-   Add MCP configuration:
-   ```javascript
-   const MCP_CONFIGS = {
-     'chrome-devtools-mcp': {
-       command: process.execPath,
-       args: ['<mcp-path>/build/src/index.js']
+   Create `~/.mcp-on-demand/mcp-configs.json` with user's MCP installation paths:
+
+   ```json
+   {
+     "chrome-devtools-mcp": {
+       "command": "node",
+       "args": ["/absolute/path/to/chrome-devtools-mcp/build/src/index.js"]
      }
-   };
+   }
    ```
 
-4. **Start session manager** (do once, leave running)
+   **Ask the user for their MCP installation paths.** Do not assume locations.
+
+3. **Start session manager** (run once, leave running)
    ```bash
    node <mcp-on-demand-path>/src/session-manager.js &
    ```
 
-### Usage Pattern
+### Configuration Format
 
-When a task requires MCP tools:
+The `~/.mcp-on-demand/mcp-configs.json` file maps MCP names to their launch commands:
 
-1. **Start MCP session** (receives tool definitions)
-   ```bash
-   node <mcp-on-demand-path>/src/session-cli.js start <mcp-name>
-   ```
-
-2. **Call tools** (single or batch)
-   ```bash
-   # Single call
-   node <mcp-on-demand-path>/src/session-cli.js call <mcp-name> <tool-name> '<json-args>'
-   
-   # Batch (more efficient)
-   node <mcp-on-demand-path>/src/session-cli.js batch <mcp-name> '[
-     {"tool":"<tool-name>","args":{...}},
-     {"tool":"<tool-name>","args":{...}}
-   ]'
-   ```
-
-3. **Stop session** (when task complete)
-   ```bash
-   node <mcp-on-demand-path>/src/session-cli.js stop <mcp-name>
-   ```
-
-### Commands Reference
-
-```bash
-start <mcp-name> [--no-show-tools]  # Start session (shows tools by default)
-call <mcp-name> <tool> <json>       # Call single tool
-batch <mcp-name> <json-array>       # Call multiple tools
-stop <mcp-name>                     # Stop session
-list                                # List active sessions
-shutdown                            # Shutdown session manager
+```json
+{
+  "mcp-name": {
+    "command": "executable",
+    "args": ["/absolute/path/to/mcp/entrypoint.js", "additional", "args"]
+  }
+}
 ```
 
-### Example: chrome-devtools-mcp Screenshot
+**Examples:**
+
+Node.js MCP:
+```json
+{
+  "chrome-devtools-mcp": {
+    "command": "node",
+    "args": ["C:/Dev/chrome-devtools-mcp/build/src/index.js"]
+  }
+}
+```
+
+Python MCP:
+```json
+{
+  "example-python-mcp": {
+    "command": "python3",
+    "args": ["/home/user/mcp-servers/example/main.py"]
+  }
+}
+```
+
+Binary MCP:
+```json
+{
+  "example-binary-mcp": {
+    "command": "/usr/local/bin/example-mcp",
+    "args": ["--flag", "value"]
+  }
+}
+```
+
+### Usage Pattern
+
+The session manager provides an HTTP API on `http://127.0.0.1:9876`.
+
+#### Using curl (Direct API)
+
+**Start MCP session:**
+```bash
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "start",
+  "mcpName": "chrome-devtools-mcp",
+  "showTools": true
+}'
+```
+
+**Call tool:**
+```bash
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "call",
+  "mcpName": "chrome-devtools-mcp",
+  "toolName": "navigate_page",
+  "args": {"url": "https://example.com"}
+}'
+```
+
+**Batch call:**
+```bash
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "batch",
+  "mcpName": "chrome-devtools-mcp",
+  "toolCalls": [
+    {"tool": "navigate_page", "args": {"url": "https://example.com"}},
+    {"tool": "take_screenshot", "args": {"format": "png"}}
+  ]
+}'
+```
+
+**Stop session:**
+```bash
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "stop",
+  "mcpName": "chrome-devtools-mcp"
+}'
+```
+
+**List active sessions:**
+```bash
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "list"
+}'
+```
+
+**Shutdown session manager:**
+```bash
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "shutdown"
+}'
+```
+
+#### Using Helper Script (Recommended for Scripts)
+
+For easier tool calling without JSON escaping issues:
 
 ```bash
-# Ensure session manager running
-if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
+# Call tool with file input
+node scripts/mcp-call.js chrome-devtools-mcp evaluate_script check-buttons.js
+
+# Call with stdin
+echo "() => document.title" | node scripts/mcp-call.js chrome-devtools-mcp evaluate_script
+
+# Call with arguments
+node scripts/mcp-call.js chrome-devtools-mcp navigate_page --url https://example.com
+```
+
+### File References with file://
+
+The session manager automatically resolves `file://` references in tool arguments:
+
+```bash
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "call",
+  "mcpName": "chrome-devtools-mcp",
+  "toolName": "evaluate_script",
+  "args": {
+    "function": "file://./scripts/check-buttons.js"
+  }
+}'
+```
+
+**What happens:**
+1. Session manager detects `file://` prefix
+2. Reads file contents from disk
+3. Replaces string with file contents
+4. Executes tool call with resolved content
+
+**Supported paths:**
+- Relative: `file://./script.js` (relative to session manager working directory)
+- Absolute: `file:///absolute/path/to/script.js`
+
+**Works everywhere:** File resolution recursively traverses all objects and arrays in args.
+
+### API Reference
+
+All requests are POST to `http://127.0.0.1:9876` with JSON payloads.
+
+**Actions:**
+
+| Action | Parameters | Description |
+|--------|------------|-------------|
+| `start` | `mcpName` (required), `showTools` (optional, default: true) | Start MCP session |
+| `call` | `mcpName`, `toolName`, `args` | Call single tool |
+| `batch` | `mcpName`, `toolCalls` (array) | Call multiple tools sequentially |
+| `stop` | `mcpName` | Stop MCP session |
+| `list` | (none) | List active sessions |
+| `shutdown` | (none) | Shutdown session manager |
+
+**Response format:**
+
+Success:
+```json
+{"success": true, ...}
+```
+
+Error:
+```json
+{"error": "error message"}
+```
+
+### Example: Web Debugging Workflow
+
+```bash
+# Ensure session manager is running
+curl -s http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{"action":"list"}' || {
   node <mcp-on-demand-path>/src/session-manager.js &
   sleep 2
-fi
+}
 
-# Start, call, stop
-node <mcp-on-demand-path>/src/session-cli.js start chrome-devtools-mcp
-node <mcp-on-demand-path>/src/session-cli.js batch chrome-devtools-mcp '[
-  {"tool":"new_page","args":{"url":"http://localhost:5173"}},
-  {"tool":"take_screenshot","args":{"filePath":"screenshot.png"}}
-]'
-node <mcp-on-demand-path>/src/session-cli.js stop chrome-devtools-mcp
+# Start chrome-devtools-mcp session
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "start",
+  "mcpName": "chrome-devtools-mcp",
+  "showTools": true
+}'
+
+# Execute debugging workflow
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "batch",
+  "mcpName": "chrome-devtools-mcp",
+  "toolCalls": [
+    {"tool": "navigate_page", "args": {"url": "https://example.com"}},
+    {"tool": "evaluate_script", "args": {"function": "file://./check-buttons.js"}},
+    {"tool": "take_screenshot", "args": {"filePath": "./screenshot.png"}}
+  ]
+}'
+
+# Stop session when done
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{
+  "action": "stop",
+  "mcpName": "chrome-devtools-mcp"
+}'
 ```
 
 ### Token Economics
 
-- **Native MCP**: 5000 tokens per MCP permanently in context
+- **Native MCP**: 5000+ tokens per MCP permanently in context
 - **MCP On Demand**: 0 tokens when not in use, ~5000 tokens only when session active
 - **Per-call overhead**: Identical (~30 tokens)
 - **Value**: Use 10+ MCPs without permanent context cost
+
+### Error Handling
+
+**Common errors:**
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Unknown MCP: xyz` | MCP not in config | Add to `~/.mcp-on-demand/mcp-configs.json` |
+| `Session xyz already running` | Duplicate start | Use existing session or stop first |
+| `No active session for xyz` | Session not started | Call `start` action first |
+| `Failed to read file: ENOENT` | File not found | Check `file://` path |
+| Connection refused | Session manager not running | Start session manager |
+
+**Session resilience:**
+- Malformed requests do **not** corrupt sessions
+- Failed tool calls do **not** invalidate sessions
+- Sessions are independent and can be restarted
+
+### Architecture
+
+```
+┌─────────────────┐
+│   Client/LLM    │ (Claude Code, curl, scripts)
+└────────┬────────┘
+         │ HTTP POST :9876
+         │
+┌────────▼────────────────────┐
+│  Session Manager            │
+│  - Loads ~/.mcp-on-demand/  │
+│    mcp-configs.json         │
+│  - Manages MCP sessions     │
+│  - Routes tool calls        │
+│  - Resolves file:// refs    │
+└────────┬────────────────────┘
+         │ stdio transport
+         │
+┌────────▼────────────────────┐
+│  MCP Server(s)              │
+│  (chrome-devtools-mcp, etc) │
+└─────────────────────────────┘
+```
+
+### File Structure
+
+```
+mcp-on-demand/
+├── src/
+│   └── session-manager.js         # Main HTTP server & MCP client
+├── scripts/
+│   └── mcp-call.js                # Helper script for tool calls
+├── mcp-configs.example.json       # Example configuration
+├── package.json
+└── README.md
+```
+
+**User configuration:**
+```
+~/.mcp-on-demand/
+├── mcp-configs.json               # User's MCP paths (required)
+└── session.json                   # Runtime state (auto-generated)
+```
+
+### Platform Notes
+
+**Windows (MSYS/Git Bash):**
+- Use forward slashes: `C:/Dev/chrome-devtools-mcp/...`
+- Works correctly in MSYS/Git Bash environments
+
+**macOS/Linux:**
+- Standard Unix paths
+- Consider `nohup` for background session manager
 
 ### Troubleshooting
 
@@ -120,9 +339,46 @@ node <mcp-on-demand-path>/src/session-cli.js stop chrome-devtools-mcp
 ```bash
 rm ~/.mcp-on-demand/session.json
 node <mcp-on-demand-path>/src/session-manager.js &
+sleep 2
+curl http://127.0.0.1:9876 -X POST -H "Content-Type: application/json" -d '{"action":"list"}'
 ```
 
-**Check active sessions:**
-```bash
-node <mcp-on-demand-path>/src/session-cli.js list
-```
+**MCP won't start?**
+1. Check config exists: `cat ~/.mcp-on-demand/mcp-configs.json`
+2. Verify MCP path: `ls /path/to/mcp/index.js`
+3. Check Node.js version: `node --version` (need v22+)
+4. Test MCP directly: `node /path/to/mcp/index.js`
+
+**Port 9876 in use?**
+- Change `PORT` constant in `src/session-manager.js:12`
+
+**Tool call timeout?**
+- Session remains functional - retry the call
+- Consider restarting the session if persistent
+
+### Design Philosophy
+
+**Separation of Concerns:**
+- MCP-on-demand does **not** install or manage MCP servers
+- Users maintain their own MCP installations
+- Session manager provides runtime orchestration only
+
+**Universal Adapter Pattern:**
+- Standardized HTTP API for any MCP server
+- Swap MCP servers without changing client code
+- Works with any stdio-based MCP implementation
+
+**Zero Overhead:**
+- No token cost when sessions inactive
+- Sessions started/stopped as needed
+- Multiple concurrent sessions supported
+
+## License
+
+MIT
+
+## Related Projects
+
+- [Model Context Protocol](https://modelcontextprotocol.io)
+- [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp)
+- [MCP SDK](https://github.com/modelcontextprotocol/sdk)

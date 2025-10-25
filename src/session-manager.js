@@ -8,18 +8,27 @@ import { join } from 'path';
 
 const STATE_DIR = join(process.env.HOME || process.env.USERPROFILE, '.mcp-on-demand');
 const SESSION_FILE = join(STATE_DIR, 'session.json');
+const CONFIG_FILE = join(STATE_DIR, 'mcp-configs.json');
 const PORT = 9876;
 
 await mkdir(STATE_DIR, { recursive: true });
 
 const activeSessions = new Map();
 
-const MCP_CONFIGS = {
-  'chrome-devtools-mcp': {
-    command: process.execPath,
-    args: ['C:/Dev/MCPs/chrome-devtools-mcp/build/src/index.js']
+// Load MCP configurations from config file
+let MCP_CONFIGS = {};
+try {
+  if (existsSync(CONFIG_FILE)) {
+    const configData = await readFile(CONFIG_FILE, 'utf8');
+    MCP_CONFIGS = JSON.parse(configData);
+    console.log(`Loaded ${Object.keys(MCP_CONFIGS).length} MCP configuration(s) from ${CONFIG_FILE}`);
+  } else {
+    console.log(`No config file found at ${CONFIG_FILE}`);
+    console.log(`Create one with the format: { "mcp-name": { "command": "node", "args": ["/path/to/mcp/index.js"] } }`);
   }
-};
+} catch (err) {
+  console.error(`Failed to load MCP configs: ${err.message}`);
+}
 
 async function startSession(mcpName, showTools = true) {
   if (activeSessions.has(mcpName)) {
@@ -67,6 +76,32 @@ async function startSession(mcpName, showTools = true) {
   }
 }
 
+async function resolveFileReferences(obj) {
+  if (typeof obj === 'string' && obj.startsWith('file://')) {
+    const filePath = obj.slice(7); // Remove 'file://' prefix
+    try {
+      const content = await readFile(filePath, 'utf8');
+      return content;
+    } catch (err) {
+      throw new Error(`Failed to read file ${filePath}: ${err.message}`);
+    }
+  }
+
+  if (Array.isArray(obj)) {
+    return Promise.all(obj.map(item => resolveFileReferences(item)));
+  }
+
+  if (obj !== null && typeof obj === 'object') {
+    const resolved = {};
+    for (const [key, value] of Object.entries(obj)) {
+      resolved[key] = await resolveFileReferences(value);
+    }
+    return resolved;
+  }
+
+  return obj;
+}
+
 async function callTool(mcpName, toolName, args) {
   const session = activeSessions.get(mcpName);
   if (!session) {
@@ -74,9 +109,12 @@ async function callTool(mcpName, toolName, args) {
   }
 
   try {
+    // Resolve any file:// references in args
+    const resolvedArgs = await resolveFileReferences(args);
+
     const result = await session.client.callTool({
       name: toolName,
-      arguments: args
+      arguments: resolvedArgs
     });
 
     return { success: true, result };
@@ -94,9 +132,12 @@ async function batchCallTools(mcpName, toolCalls) {
   try {
     const results = [];
     for (const call of toolCalls) {
+      // Resolve any file:// references in args
+      const resolvedArgs = await resolveFileReferences(call.args);
+
       const result = await session.client.callTool({
         name: call.tool,
-        arguments: call.args
+        arguments: resolvedArgs
       });
       results.push({ tool: call.tool, result });
     }
@@ -128,6 +169,18 @@ async function listSessions() {
 }
 
 const server = createServer(async (req, res) => {
+  // Health check endpoint
+  if (req.method === 'GET' && req.url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+      status: 'ok',
+      pid: process.pid,
+      uptime: Math.floor(process.uptime()),
+      activeSessions: Array.from(activeSessions.keys())
+    }));
+    return;
+  }
+
   if (req.method !== 'POST') {
     res.writeHead(405, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Only POST allowed' }));

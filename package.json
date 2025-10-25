@@ -6,7 +6,11 @@
   "main": "src/session-manager.js",
   "scripts": {
     "start": "node src/session-manager.js",
-    "cli": "node src/session-cli.js"
+    "start:bg": "node src/session-manager.js &",
+    "cli": "node src/session-cli.js",
+    "health": "curl -s http://127.0.0.1:9876/health | node -e \"process.stdin.on('data', d => console.log(JSON.stringify(JSON.parse(d), null, 2)))\"",
+    "stop": "curl -s http://127.0.0.1:9876 -X POST -H \"Content-Type: application/json\" -d '{\"action\":\"shutdown\"}'",
+    "call": "node scripts/mcp-call.js"
   },
   "keywords": ["mcp", "model-context-protocol", "on-demand", "dynamic", "context-efficient", "claude-code"],
   "author": "Mattias Fagerlund",
