@@ -12,15 +12,20 @@ In Claude Code, type:
 Read https://github.com/mfagerlund/mcp-on-demand/blob/main/CREATING-SKILL.md and create a web debugging skill that can inspect pages, take screenshots, and analyze DOM using chrome-devtools-mcp
 ```
 
-**Prerequisites:** Read [README.md](README.md) first to set up MCP On Demand.
+Then use it naturally when needed:
+```
+Debug http://localhost:5173 - the submit button isn't working
+```
 
 ## For LLMs
+
+**Prerequisites:** Read [README.md](README.md) to set up MCP On Demand if not already installed.
 
 ### Overview
 
 Skills in Claude Code are reusable capabilities defined in `~/.claude/skills/<skill-name>/`.
 
-**Prerequisites:** Ensure mcp-on-demand is installed per [README.md](README.md).
+Skills activate automatically when user requests match the skill's purpose. Users don't invoke skills explicitly - they describe what they need naturally.
 
 ### Skill Directory Structure
 
@@ -74,14 +79,19 @@ This skill provides web UI debugging capabilities using chrome-devtools-mcp with
 ## When to Use
 
 - User asks to debug a web page or UI
-- Need to inspect page structure, elements, or behavior
-- Capture screenshots for visual verification
-- Extract DOM content or element information
-- Test web application functionality
+- User describes issues with buttons, forms, or interactions
+- User needs to inspect page structure or behavior
+- User wants screenshots for visual verification
+- User needs to analyze DOM or console errors
 
 ## How to Use
 
+When user describes a web debugging need, extract the URL and issue from their message.
+
 \```bash
+# Extract from user's message (e.g., "Debug http://localhost:5173 - submit button fails")
+URL="<extracted-url>"
+
 # Ensure session manager is running
 if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
   node <mcp-on-demand-path>/src/session-manager.js &
@@ -91,16 +101,24 @@ fi
 # Start chrome-devtools-mcp session
 node <mcp-on-demand-path>/src/session-cli.js start chrome-devtools-mcp
 
-# Example: Debug a page - screenshot + content
-node <mcp-on-demand-path>/src/session-cli.js batch chrome-devtools-mcp '[
-  {"tool":"new_page","args":{"url":"<target-url>"}},
-  {"tool":"take_screenshot","args":{"filePath":"<output-path>"}},
-  {"tool":"get_page_content","args":{}}
-]'
+# Batch: open page, capture debug info
+node <mcp-on-demand-path>/src/session-cli.js batch chrome-devtools-mcp "[
+  {\"tool\":\"new_page\",\"args\":{\"url\":\"$URL\"}},
+  {\"tool\":\"take_screenshot\",\"args\":{\"filePath\":\"debug.png\"}},
+  {\"tool\":\"get_page_content\",\"args\":{}},
+  {\"tool\":\"get_console_logs\",\"args\":{}}
+]"
 
 # Stop session when done
 node <mcp-on-demand-path>/src/session-cli.js stop chrome-devtools-mcp
 \```
+
+After executing:
+- Analyze screenshot for visual issues
+- Examine page content to locate mentioned elements
+- Check console logs for errors
+- Provide specific findings and actionable recommendations
+```
 
 ## Available Tools
 
@@ -113,38 +131,19 @@ When you start the session, you'll receive tool definitions. Key tools:
 - `get_console_logs` - Get browser console output
 - `evaluate_javascript` - Execute JS in page context
 
-## Example Workflows
+## Example Natural Language Triggers
 
-**Debug UI issue:**
-\```bash
-node <mcp-on-demand-path>/src/session-cli.js start chrome-devtools-mcp
-node <mcp-on-demand-path>/src/session-cli.js batch chrome-devtools-mcp '[
-  {"tool":"new_page","args":{"url":"http://localhost:5173"}},
-  {"tool":"get_page_content","args":{}},
-  {"tool":"take_screenshot","args":{"filePath":"debug.png"}},
-  {"tool":"get_console_logs","args":{}}
-]'
-node <mcp-on-demand-path>/src/session-cli.js stop chrome-devtools-mcp
-\```
+Users might say:
+- "Debug http://localhost:5173 - the submit button isn't working"
+- "Check why the form validation fails on localhost:3000"
+- "Investigate the layout issue on https://myapp.com/dashboard"
+- "Take a screenshot of http://localhost:5173 and analyze the errors"
 
-**Test form interaction:**
-\```bash
-node <mcp-on-demand-path>/src/session-cli.js start chrome-devtools-mcp
-node <mcp-on-demand-path>/src/session-cli.js batch chrome-devtools-mcp '[
-  {"tool":"new_page","args":{"url":"http://localhost:5173/form"}},
-  {"tool":"get_page_content","args":{}},
-  {"tool":"click","args":{"uid":"input-email"}},
-  {"tool":"type_text","args":{"text":"test@example.com"}},
-  {"tool":"click","args":{"uid":"submit-button"}},
-  {"tool":"take_screenshot","args":{"filePath":"form-submitted.png"}}
-]'
-node <mcp-on-demand-path>/src/session-cli.js stop chrome-devtools-mcp
-\```
-```
+The skill should activate and extract necessary information from their message.
 
 ### Skill with Helper Script
 
-For more complex skills, create helper scripts:
+For more complex workflows, create helper scripts:
 
 Create `~/.claude/skills/web-debug-mcp/scripts/debug-page.sh`:
 
@@ -163,41 +162,34 @@ node "$MCP_PATH/src/session-cli.js" start chrome-devtools-mcp --no-show-tools
 node "$MCP_PATH/src/session-cli.js" batch chrome-devtools-mcp "[
   {\"tool\":\"new_page\",\"args\":{\"url\":\"$URL\"}},
   {\"tool\":\"take_screenshot\",\"args\":{\"filePath\":\"$OUTPUT_DIR/screenshot.png\"}},
-  {\"tool\":\"get_page_content\",\"args\":{}}
+  {\"tool\":\"get_page_content\",\"args\":{}},
+  {\"tool\":\"get_console_logs\",\"args\":{}}
 ]"
 node "$MCP_PATH/src/session-cli.js" stop chrome-devtools-mcp
 
 echo "Debug info saved to $OUTPUT_DIR"
 ```
 
-Then in SKILL.md:
-
-```markdown
-## How to Use
-
-\```bash
-bash ~/.claude/skills/web-debug-mcp/scripts/debug-page.sh <url> <output-dir>
-\```
-```
-
 ### Key Patterns
 
-1. **Start with tool discovery** - First session start shows all tools
-2. **Subsequent sessions can use --no-show-tools** - When restarting MCP
-3. **Use batch for multi-step workflows** - Reduces overhead
-4. **Check session manager status** - Start if not running
-5. **Always stop session** - Clean up when done
+1. **Natural language activation** - Skill activates from user's description
+2. **Extract from context** - Parse URL and issue from user's message
+3. **Start with tool discovery** - First session start shows all tools
+4. **Use batch for workflows** - Reduces overhead
+5. **Analyze and report** - Provide insights, not just raw data
+6. **Always stop session** - Clean up when done
 
 ### Skill Activation
 
 Skills activate automatically when:
-- User mentions the skill by name
-- User's request matches the "When to Use" scenarios
+- User's message matches "When to Use" scenarios
+- User describes a problem the skill can solve
 - Claude Code determines the skill is relevant
 
-You can also explicitly invoke: `/skill web-debug-mcp`
+Unlike commands, skills are NOT invoked explicitly - they work in the background.
 
 ### Related
 
 - [README.md](README.md) - Setup and installation
 - [CREATING-COMMAND.md](CREATING-COMMAND.md) - Create commands with MCP On Demand
+- [CREATING-AGENT.md](CREATING-AGENT.md) - Create agents with MCP On Demand

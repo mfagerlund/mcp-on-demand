@@ -17,17 +17,15 @@ Then use it naturally:
 /debug-web-ui In http://localhost:5173, debug why the submit button fails.
 ```
 
-**Prerequisites:** Read [README.md](README.md) first to set up MCP On Demand.
-
 ## For LLMs
+
+**Prerequisites:** Read [README.md](README.md) to set up MCP On Demand if not already installed.
 
 ### Overview
 
 Commands in Claude Code are markdown files in `~/.claude/commands/` that expand to full prompts when invoked with `/command-name`.
 
 Users invoke commands with natural language - extract URLs, context, and intent from their message.
-
-**Prerequisites:** Ensure mcp-on-demand is installed per [README.md](README.md).
 
 ### Command File Structure
 
@@ -220,3 +218,4 @@ Usage:
 
 - [README.md](README.md) - Setup and installation
 - [CREATING-SKILL.md](CREATING-SKILL.md) - Create skills with MCP On Demand
+- [CREATING-AGENT.md](CREATING-AGENT.md) - Create agents with MCP On Demand
