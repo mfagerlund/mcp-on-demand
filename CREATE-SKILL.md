@@ -7,7 +7,7 @@ Create a skill (auto-activates based on context) that uses MCP On Demand.
 **Example:**
 
 ```
-Read https://raw.githubusercontent.com/mfagerlund/mcp-on-demand/refs/heads/master/CREATE-SKILL.md and create a web debugging skill using chrome-devtools-mcp (clone from https://github.com/ChromeDevTools/chrome-devtools-mcp.git)
+Read https://raw.githubusercontent.com/mfagerlund/mcp-on-demand/refs/heads/master/CREATE-SKILL.md and create a web debugging skill using chrome-devtools-mcp
 ```
 
 Use it naturally:
@@ -15,9 +15,13 @@ Use it naturally:
 Debug http://localhost:5173 - submit button isn't working
 ```
 
+**Note:** The MCP should already be installed before creating the skill. See "Installing an MCP" section below for reference.
+
 ## For LLMs
 
-**Prerequisites:** [README.md](README.md) must be set up.
+**Prerequisites:**
+- [README.md](README.md) must be set up
+- The target MCP must already be installed on the system
 
 ### CRITICAL: Path Discovery
 
@@ -25,12 +29,12 @@ Before creating the skill, you MUST:
 
 1. **Find mcp-on-demand installation path**:
    - Check if already installed: search for `session-manager.js` or `session-cli.js`
-   - If not found, ask user: "Where should I install mcp-on-demand?" or "Where is mcp-on-demand installed?"
+   - If not found, ask user: "Where is mcp-on-demand installed?"
    - Store this as `<mcp-on-demand-path>`
 
 2. **Find target MCP installation path**:
-   - Check if the requested MCP is already installed
-   - If not found, ask user: "Where should I install <mcp-name>?" or "Where is <mcp-name> installed?"
+   - The requested MCP should already be installed
+   - Ask user: "Where is <mcp-name> installed?"
    - Store this as `<target-mcp-path>`
 
 3. **Verify configuration**:
@@ -38,6 +42,44 @@ Before creating the skill, you MUST:
    - If the target MCP is not configured, add it with the correct path
 
 **DO NOT create the skill until you have ACTUAL, REAL paths** (not placeholders like `<mcp-on-demand-path>`).
+
+### Installing an MCP (Reference Only)
+
+This section is for informational purposes only. The MCP should already be installed before you create a skill.
+
+**Example: Installing chrome-devtools-mcp**
+
+If you needed to install chrome-devtools-mcp, you would:
+
+1. Clone the repository:
+   ```bash
+   cd /path/to/your/mcps/folder
+   git clone https://github.com/ChromeDevTools/chrome-devtools-mcp.git
+   cd chrome-devtools-mcp
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Build (if required):
+   ```bash
+   npm run build
+   ```
+
+4. Configure in `mcp-on-demand/src/session-manager.js`:
+   ```javascript
+   const MCP_CONFIGS = {
+     'chrome-devtools-mcp': {
+       command: 'node',
+       args: ['/path/to/your/mcps/folder/chrome-devtools-mcp/build/index.js'],
+       env: {}
+     }
+   };
+   ```
+
+**However, for creating skills, assume the MCP is already installed and configured.**
 
 ### Structure
 
