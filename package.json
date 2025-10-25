@@ -1,0 +1,16 @@
+{
+  "name": "mcp-wrapper",
+  "version": "0.1.0",
+  "description": "Dynamic MCP server wrapper for on-demand loading",
+  "type": "module",
+  "main": "src/wrapper.js",
+  "scripts": {
+    "start": "node src/wrapper.js"
+  },
+  "keywords": ["mcp", "model-context-protocol", "wrapper", "dynamic"],
+  "author": "Mattias Fagerlund",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.20.0"
+  }
+}
