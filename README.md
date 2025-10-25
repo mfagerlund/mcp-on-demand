@@ -18,7 +18,6 @@ Read https://github.com/mfagerlund/mcp-on-demand/blob/master/README.md and follo
 **Next Steps:**
 - [Creating Commands](CREATING-COMMAND.md) - Build commands that use MCP On Demand
 - [Creating Skills](CREATING-SKILL.md) - Build skills that use MCP On Demand
-- [Creating Agents](CREATING-AGENT.md) - Build agents that use MCP On Demand (zero context pollution!)
 
 ## For LLMs
 
@@ -143,4 +142,3 @@ node <mcp-on-demand-path>/src/session-cli.js list
 
 - [CREATING-COMMAND.md](CREATING-COMMAND.md) - Create commands that use MCP On Demand
 - [CREATING-SKILL.md](CREATING-SKILL.md) - Create skills that use MCP On Demand
-- [CREATING-AGENT.md](CREATING-AGENT.md) - Create agents that use MCP On Demand (zero context pollution!)

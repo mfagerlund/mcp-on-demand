@@ -192,4 +192,3 @@ Unlike commands, skills are NOT invoked explicitly - they work in the background
 
 - [README.md](README.md) - Setup and installation
 - [CREATING-COMMAND.md](CREATING-COMMAND.md) - Create commands with MCP On Demand
-- [CREATING-AGENT.md](CREATING-AGENT.md) - Create agents with MCP On Demand

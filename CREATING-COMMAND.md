@@ -218,4 +218,3 @@ Usage:
 
 - [README.md](README.md) - Setup and installation
 - [CREATING-SKILL.md](CREATING-SKILL.md) - Create skills with MCP On Demand
-- [CREATING-AGENT.md](CREATING-AGENT.md) - Create agents with MCP On Demand
