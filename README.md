@@ -1,85 +1,135 @@
 # MCP On Demand
 
-Dynamic MCP (Model Context Protocol) server loading - **zero context overhead when not in use**.
+Load MCP servers on-demand instead of keeping them in context permanently. Zero token overhead when not in use.
 
-## The Problem
+## For Humans
 
-MCPs are powerful but have a critical limitation:
-- All installed MCPs are **always in context**
-- Large MCPs like chrome-devtools-mcp consume thousands of tokens
-- You can't use many MCPs without exhausting your context budget
-- Manually enabling/disabling MCPs in config requires restarts
+In Claude Code, type:
 
-## The Solution
+```
+Read https://github.com/mfagerlund/mcp-on-demand/blob/main/README.md and follow the instructions to set up MCP On Demand
+```
 
-**Load MCPs on demand** - start them when needed, get their tool definitions, call their tools, then shut them down.
+Example using chrome-devtools-mcp:
+```
+Read https://github.com/mfagerlund/mcp-on-demand/blob/main/README.md and follow the instructions to set up MCP On Demand for https://github.com/ChromeDevTools/chrome-devtools-mcp
+```
 
-## How It Works
+## For LLMs
 
-1. **Start MCP**: Launch the MCP server process (e.g., chrome-devtools-mcp)
-2. **Get Tools**: Query the MCP for its tool list and schemas
-3. **Inject Context**: Provide tool definitions only when the MCP is active
-4. **Call Tools**: Execute tools via JSON-RPC
-5. **Cleanup**: Shut down the MCP when done
+### Installation
 
-## Usage
+**Ask the user where to install mcp-on-demand if not already installed.**
+
+Common locations: `C:/Dev/mcp-on-demand`, `~/mcp-on-demand`
+
+1. **Clone mcp-on-demand**
+   ```bash
+   git clone https://github.com/mfagerlund/mcp-on-demand.git <mcp-on-demand-path>
+   cd <mcp-on-demand-path>
+   npm install
+   ```
+
+2. **Clone target MCP** (if user specified one, e.g., chrome-devtools-mcp)
+   
+   **Ask the user where to install the target MCP if not already installed.**
+   
+   Example for chrome-devtools-mcp:
+   ```bash
+   git clone https://github.com/ChromeDevTools/chrome-devtools-mcp.git <mcp-path>
+   cd <mcp-path>
+   npm install
+   npm run build
+   ```
+
+3. **Configure MCP** - Edit `<mcp-on-demand-path>/src/session-manager.js`
+   
+   Add MCP configuration:
+   ```javascript
+   const MCP_CONFIGS = {
+     'chrome-devtools-mcp': {
+       command: process.execPath,
+       args: ['<mcp-path>/build/src/index.js']
+     }
+   };
+   ```
+
+4. **Start session manager** (do once, leave running)
+   ```bash
+   node <mcp-on-demand-path>/src/session-manager.js &
+   ```
+
+### Usage Pattern
+
+When a task requires MCP tools:
+
+1. **Start MCP session** (receives tool definitions)
+   ```bash
+   node <mcp-on-demand-path>/src/session-cli.js start <mcp-name>
+   ```
+
+2. **Call tools** (single or batch)
+   ```bash
+   # Single call
+   node <mcp-on-demand-path>/src/session-cli.js call <mcp-name> <tool-name> '<json-args>'
+   
+   # Batch (more efficient)
+   node <mcp-on-demand-path>/src/session-cli.js batch <mcp-name> '[
+     {"tool":"<tool-name>","args":{...}},
+     {"tool":"<tool-name>","args":{...}}
+   ]'
+   ```
+
+3. **Stop session** (when task complete)
+   ```bash
+   node <mcp-on-demand-path>/src/session-cli.js stop <mcp-name>
+   ```
+
+### Commands Reference
 
 ```bash
-# Start chrome-devtools-mcp and get its tool definitions
-node src/wrapper.js start chrome-devtools-mcp
-
-# Call a tool
-node src/wrapper.js call chrome-devtools-mcp navigate_page '{"url": "https://example.com"}'
+start <mcp-name> [--no-show-tools]  # Start session (shows tools by default)
+call <mcp-name> <tool> <json>       # Call single tool
+batch <mcp-name> <json-array>       # Call multiple tools
+stop <mcp-name>                     # Stop session
+list                                # List active sessions
+shutdown                            # Shutdown session manager
 ```
 
-## Benefits
+### Example: chrome-devtools-mcp Screenshot
 
-- ✅ **Zero context overhead** when MCP not in use
-- ✅ **Dynamic loading** - activate only when needed
-- ✅ **Skill integration** - skills can load their own MCPs
-- ✅ **No config changes** - no Claude Code restarts required
-- ✅ **Resource efficient** - MCPs run only when actively used
+```bash
+# Ensure session manager running
+if ! curl -s http://127.0.0.1:9876 >/dev/null 2>&1; then
+  node <mcp-on-demand-path>/src/session-manager.js &
+  sleep 2
+fi
 
-## Status
-
-🚧 **Proof of Concept** - Successfully tested with chrome-devtools-mcp (26 tools).
-
-## Architecture
-
-```
-┌─────────────┐
-│   Skill     │  Activates skill
-└──────┬──────┘
-       │
-       v
-┌─────────────────┐
-│ MCP On Demand   │  Starts MCP server
-└──────┬──────────┘
-       │
-       v
-┌─────────────────┐
-│  MCP Server     │  Runs as needed
-│ (chrome-dev-    │  Communicates via stdio
-│  tools-mcp)     │
-└─────────────────┘
+# Start, call, stop
+node <mcp-on-demand-path>/src/session-cli.js start chrome-devtools-mcp
+node <mcp-on-demand-path>/src/session-cli.js batch chrome-devtools-mcp '[
+  {"tool":"new_page","args":{"url":"http://localhost:5173"}},
+  {"tool":"take_screenshot","args":{"filePath":"screenshot.png"}}
+]'
+node <mcp-on-demand-path>/src/session-cli.js stop chrome-devtools-mcp
 ```
 
-## Future
+### Token Economics
 
-- Generic MCP configuration for any server
-- Automatic process lifecycle management
-- Tool definition caching
-- Skill-scoped MCP declarations
-- Background process management
+- **Native MCP**: 5000 tokens per MCP permanently in context
+- **MCP On Demand**: 0 tokens when not in use, ~5000 tokens only when session active
+- **Per-call overhead**: Identical (~30 tokens)
+- **Value**: Use 10+ MCPs without permanent context cost
 
-## Token Economics
+### Troubleshooting
 
-**Before MCP On Demand:**
-- chrome-devtools-mcp: ~5000 tokens permanently in context
-- 5-10 MCPs: 25,000+ tokens constantly wasted
-- Context exhaustion on complex tasks
+**Session manager not responding?**
+```bash
+rm ~/.mcp-on-demand/session.json
+node <mcp-on-demand-path>/src/session-manager.js &
+```
 
-**With MCP On Demand:**
-- 0 tokens when not in use
-- Full tool access when needed
-- Use as many MCPs as you want!
+**Check active sessions:**
+```bash
+node <mcp-on-demand-path>/src/session-cli.js list
+```

@@ -2,3 +2,5 @@ node_modules/
 .DS_Store
 *.log
 .mcp-on-demand/
+*.png
+github-description.txt
