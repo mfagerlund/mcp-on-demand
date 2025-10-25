@@ -1,13 +1,13 @@
 {
-  "name": "mcp-wrapper",
+  "name": "mcp-on-demand",
   "version": "0.1.0",
-  "description": "Dynamic MCP server wrapper for on-demand loading",
+  "description": "Load MCP servers dynamically - zero context overhead when not in use",
   "type": "module",
   "main": "src/wrapper.js",
   "scripts": {
     "start": "node src/wrapper.js"
   },
-  "keywords": ["mcp", "model-context-protocol", "wrapper", "dynamic"],
+  "keywords": ["mcp", "model-context-protocol", "on-demand", "dynamic", "context-efficient"],
   "author": "Mattias Fagerlund",
   "license": "MIT",
   "dependencies": {

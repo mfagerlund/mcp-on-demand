@@ -27,7 +27,7 @@ async function startMcp(mcpName) {
   });
 
   const client = new Client({
-    name: 'mcp-wrapper',
+    name: 'mcp-on-demand',
     version: '0.1.0'
   }, {
     capabilities: {}
@@ -72,7 +72,7 @@ async function callTool(mcpName, toolName, argsJson) {
   });
 
   const client = new Client({
-    name: 'mcp-wrapper',
+    name: 'mcp-on-demand',
     version: '0.1.0'
   }, {
     capabilities: {}

@@ -1,6 +1,6 @@
-# MCP Wrapper
+# MCP On Demand
 
-Dynamic MCP (Model Context Protocol) server wrapper that solves the **context pollution problem**.
+Dynamic MCP (Model Context Protocol) server loading - **zero context overhead when not in use**.
 
 ## The Problem
 
@@ -29,10 +29,7 @@ MCPs are powerful but have a critical limitation:
 node src/wrapper.js start chrome-devtools-mcp
 
 # Call a tool
-node src/wrapper.js call chrome-devtools-mcp navigate '{"url": "https://example.com"}'
-
-# Stop the MCP
-node src/wrapper.js stop chrome-devtools-mcp
+node src/wrapper.js call chrome-devtools-mcp navigate_page '{"url": "https://example.com"}'
 ```
 
 ## Benefits
@@ -45,7 +42,7 @@ node src/wrapper.js stop chrome-devtools-mcp
 
 ## Status
 
-🚧 **Work in Progress** - Currently wrapping chrome-devtools-mcp as proof of concept.
+🚧 **Proof of Concept** - Successfully tested with chrome-devtools-mcp (26 tools).
 
 ## Architecture
 
@@ -56,12 +53,12 @@ node src/wrapper.js stop chrome-devtools-mcp
        │
        v
 ┌─────────────────┐
-│  MCP Wrapper    │  Starts MCP server
+│ MCP On Demand   │  Starts MCP server
 └──────┬──────────┘
        │
        v
 ┌─────────────────┐
-│  MCP Server     │  Runs in background
+│  MCP Server     │  Runs as needed
 │ (chrome-dev-    │  Communicates via stdio
 │  tools-mcp)     │
 └─────────────────┘
@@ -69,7 +66,20 @@ node src/wrapper.js stop chrome-devtools-mcp
 
 ## Future
 
-- Support for any MCP server
+- Generic MCP configuration for any server
 - Automatic process lifecycle management
-- Caching of tool definitions
+- Tool definition caching
 - Skill-scoped MCP declarations
+- Background process management
+
+## Token Economics
+
+**Before MCP On Demand:**
+- chrome-devtools-mcp: ~5000 tokens permanently in context
+- 5-10 MCPs: 25,000+ tokens constantly wasted
+- Context exhaustion on complex tasks
+
+**With MCP On Demand:**
+- 0 tokens when not in use
+- Full tool access when needed
+- Use as many MCPs as you want!
