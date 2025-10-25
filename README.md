@@ -4,7 +4,7 @@ Load MCP servers on-demand instead of keeping them in context permanently. Zero 
 
 ## For Humans
 
-In Claude Code, type:
+**Setup:** In Claude Code, type:
 
 ```
 Read https://github.com/mfagerlund/mcp-on-demand/blob/main/README.md and follow the instructions to set up MCP On Demand
@@ -14,6 +14,10 @@ Example using chrome-devtools-mcp:
 ```
 Read https://github.com/mfagerlund/mcp-on-demand/blob/main/README.md and follow the instructions to set up MCP On Demand for https://github.com/ChromeDevTools/chrome-devtools-mcp
 ```
+
+**Next Steps:**
+- [Creating Commands](CREATING-COMMAND.md) - Build commands that use MCP On Demand
+- [Creating Skills](CREATING-SKILL.md) - Build skills that use MCP On Demand
 
 ## For LLMs
 
@@ -133,3 +137,8 @@ node <mcp-on-demand-path>/src/session-manager.js &
 ```bash
 node <mcp-on-demand-path>/src/session-cli.js list
 ```
+
+### Related Guides
+
+- [CREATING-COMMAND.md](CREATING-COMMAND.md) - Create commands that use MCP On Demand
+- [CREATING-SKILL.md](CREATING-SKILL.md) - Create skills that use MCP On Demand
