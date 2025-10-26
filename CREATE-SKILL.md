@@ -1,5 +1,14 @@
 # Create Skill
 
+**For humans:** Point Claude Code to this guide and specify which MCP to wrap and where it's installed:
+```
+Read https://raw.githubusercontent.com/mfagerlund/mcp-on-demand/refs/heads/master/CREATE-SKILL.md and create a skill for <mcp-name> (installed at /path/to/mcp)
+```
+
+The rest of this document is for LLMs to follow when creating skills.
+
+---
+
 Auto-activating skill that uses MCP On Demand. Activates based on user intent.
 
 ## Setup Required

@@ -1,5 +1,14 @@
 # Create Command
 
+**For humans:** Point Claude Code to this guide and specify which MCP to wrap and where it's installed:
+```
+Read https://raw.githubusercontent.com/mfagerlund/mcp-on-demand/refs/heads/master/CREATE-COMMAND.md and create a /<command-name> for <mcp-name> (installed at /path/to/mcp)
+```
+
+The rest of this document is for LLMs to follow when creating commands.
+
+---
+
 Explicit `/command-name` that uses MCP On Demand. User invokes manually.
 
 ## Setup Required
