@@ -20,7 +20,7 @@ A lightweight HTTP session manager for Model Context Protocol (MCP) servers. Loa
 
 ### Installation
 
-**IMPORTANT:** Do NOT attempt to install MCP servers. The user is responsible for installing MCP servers on their system. Only help configure mcp-on-demand to use existing installations.
+**IMPORTANT:** This document assumes the MCP has already been installed.
 
 1. **Install and setup mcp-on-demand**
    ```bash
