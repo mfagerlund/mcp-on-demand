@@ -31,8 +31,8 @@ try {
 // Parse command
 const [,, command, ...args] = process.argv;
 
-if (!command) {
-  console.log(`MCP On-Demand v0.1.0
+if (!command || command === '--help' || command === '-h') {
+  console.log(`MCP On-Demand v0.5.0
 
 Usage: mcp-on-demand <command> [args]
 

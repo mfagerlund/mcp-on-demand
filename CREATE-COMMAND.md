@@ -13,16 +13,12 @@ Explicit `/command-name` that uses MCP On Demand. User invokes manually.
 
 ## Setup Required
 
-Run once in the mcp-on-demand directory:
+Install mcp-on-demand globally:
 ```bash
-cd <mcp-on-demand-directory>
-npm install
-npm run setup
-npm link
+npm install -g mcp-on-demand
 ```
 
-- `npm run setup` creates `~/.mcp-on-demand/installation.json`
-- `npm link` makes `mcp-on-demand` command available globally (restart terminal after this)
+This automatically runs setup, which creates `~/.mcp-on-demand/installation.json` and makes the `mcp-on-demand` command available globally
 
 **Verify CLI works:**
 ```bash
@@ -163,7 +159,7 @@ mcp-on-demand manager &
 
 | Issue | Solution |
 |-------|----------|
-| `mcp-on-demand: command not found` | Run `npm link` in mcp-on-demand directory, or use full path |
+| `mcp-on-demand: command not found` | Run `npm install -g mcp-on-demand` |
 | `Unknown MCP: xyz` | Add to `~/.mcp-on-demand/mcp-configs.json` |
 | Config test fails | Verify MCP path exists and MCP is built (`npm run build` in MCP dir) |
 | Session manager not responding | Kill stale process: `pkill -f session-manager`, then retry |

@@ -4,25 +4,21 @@ This directory contains example scripts for use with the chrome-devtools-mcp ser
 
 ## Prerequisites
 
-1. Session manager running:
+1. Install mcp-on-demand:
    ```bash
-   npm start
+   npm install -g mcp-on-demand
    ```
 
-2. Chrome DevTools MCP session started (will auto-start on first tool call)
+2. Session manager auto-starts on first use
+
+3. Chrome DevTools MCP session will auto-start on first tool call
 
 ## Usage
 
-All examples can be run using the mcp-call.js helper:
+All examples can be run using the mcp-on-demand CLI:
 
 ```bash
-node scripts/mcp-call.js chrome-devtools-mcp evaluate_script examples/chrome-devtools/<script-name>.js
-```
-
-Or with cleaner output:
-
-```bash
-node scripts/mcp-call.js chrome-devtools-mcp evaluate_script examples/chrome-devtools/<script-name>.js --format=raw
+mcp-on-demand call chrome-devtools-mcp evaluate_script '{"function":"file://examples/chrome-devtools/<script-name>.js"}'
 ```
 
 ## Available Examples
@@ -36,10 +32,10 @@ Scans the current page for common accessibility issues:
 **Usage:**
 ```bash
 # Navigate to a page first
-node scripts/mcp-call.js chrome-devtools-mcp navigate_page --url https://example.com
+mcp-on-demand call chrome-devtools-mcp navigate_page '{"url":"https://example.com"}'
 
 # Run accessibility check
-node scripts/mcp-call.js chrome-devtools-mcp evaluate_script examples/chrome-devtools/check-accessibility.js --format=raw
+mcp-on-demand call chrome-devtools-mcp evaluate_script '{"function":"file://examples/chrome-devtools/check-accessibility.js"}'
 ```
 
 ### check-buttons.js
@@ -47,8 +43,8 @@ Audits all clickable buttons on the page to verify they have IDs and accessible 
 
 **Usage:**
 ```bash
-node scripts/mcp-call.js chrome-devtools-mcp navigate_page --url https://example.com
-node scripts/mcp-call.js chrome-devtools-mcp evaluate_script examples/chrome-devtools/check-buttons.js --format=raw
+mcp-on-demand call chrome-devtools-mcp navigate_page '{"url":"https://example.com"}'
+mcp-on-demand call chrome-devtools-mcp evaluate_script '{"function":"file://examples/chrome-devtools/check-buttons.js"}'
 ```
 
 ### find-broken-links.js
@@ -60,8 +56,8 @@ Identifies potentially broken or suspicious links:
 
 **Usage:**
 ```bash
-node scripts/mcp-call.js chrome-devtools-mcp navigate_page --url https://example.com
-node scripts/mcp-call.js chrome-devtools-mcp evaluate_script examples/chrome-devtools/find-broken-links.js --format=raw
+mcp-on-demand call chrome-devtools-mcp navigate_page '{"url":"https://example.com"}'
+mcp-on-demand call chrome-devtools-mcp evaluate_script '{"function":"file://examples/chrome-devtools/find-broken-links.js"}'
 ```
 
 ### extract-forms.js
@@ -69,8 +65,8 @@ Extracts all forms on the page along with their structure and fields.
 
 **Usage:**
 ```bash
-node scripts/mcp-call.js chrome-devtools-mcp navigate_page --url https://example.com/contact
-node scripts/mcp-call.js chrome-devtools-mcp evaluate_script examples/chrome-devtools/extract-forms.js --format=raw
+mcp-on-demand call chrome-devtools-mcp navigate_page '{"url":"https://example.com/contact"}'
+mcp-on-demand call chrome-devtools-mcp evaluate_script '{"function":"file://examples/chrome-devtools/extract-forms.js"}'
 ```
 
 ## Creating Your Own Scripts
@@ -91,9 +87,15 @@ All scripts should be JavaScript functions that return JSON-serializable data:
 
 ## Tips
 
-1. **Use --format=raw** for cleaner output that extracts just the result
-2. **Chain operations** by saving intermediate results or using batch calls
-3. **Take screenshots** after running scripts to visualize findings:
+1. **Use batch commands** for sequential operations:
    ```bash
-   node scripts/mcp-call.js chrome-devtools-mcp take_screenshot --format png --filePath ./result.png
+   mcp-on-demand batch chrome-devtools-mcp '[
+     {"tool":"navigate_page","args":{"url":"https://example.com"}},
+     {"tool":"evaluate_script","args":{"function":"file://examples/chrome-devtools/check-buttons.js"}}
+   ]'
+   ```
+
+2. **Take screenshots** after running scripts to visualize findings:
+   ```bash
+   mcp-on-demand call chrome-devtools-mcp take_screenshot '{"format":"png","filePath":"./result.png"}'
    ```

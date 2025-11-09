@@ -1,0 +1,12 @@
+# Development and internal documentation
+alternative-interfaces.md
+IMPLEMENTATION-STATUS.md
+recommendations.md
+skill-usage-feedback.md
+github-description.txt
+debug.png
+test-script.js
+
+# Git files
+.git
+.gitignore

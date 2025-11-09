@@ -1,5 +1,9 @@
 # MCP On-Demand
 
+[![npm version](https://badge.fury.io/js/mcp-on-demand.svg)](https://www.npmjs.com/package/mcp-on-demand)
+[![npm downloads](https://img.shields.io/npm/dm/mcp-on-demand.svg)](https://www.npmjs.com/package/mcp-on-demand)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A lightweight HTTP session manager for Model Context Protocol (MCP) servers. Load MCP servers on-demand instead of keeping them in context permanently. Zero token overhead when not in use.
 
 ## For Humans
@@ -20,16 +24,14 @@ A lightweight HTTP session manager for Model Context Protocol (MCP) servers. Loa
 
 ### Installation
 
-**IMPORTANT:** This document assumes the MCP has already been installed.
+**IMPORTANT:** This document assumes MCP servers have already been installed on the system.
 
-1. **Install and setup mcp-on-demand**
+1. **Install mcp-on-demand globally**
    ```bash
-   cd <mcp-on-demand-path>
-   npm install
-   npm run setup
+   npm install -g mcp-on-demand
    ```
 
-   The `npm run setup` command creates `~/.mcp-on-demand/installation.json` to make the CLI self-locating. This allows you to use `mcp-on-demand` commands from anywhere.
+   The installation automatically runs setup, which creates `~/.mcp-on-demand/installation.json` to make the CLI self-locating. This allows you to use `mcp-on-demand` commands from anywhere.
 
 2. **Create configuration file**
 
