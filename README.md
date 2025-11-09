@@ -1,6 +1,7 @@
 # MCP On-Demand
 
 [![npm version](https://badge.fury.io/js/mcp-on-demand.svg)](https://www.npmjs.com/package/mcp-on-demand)
+[![npm downloads](https://img.shields.io/npm/dm/mcp-on-demand.svg)](https://www.npmjs.com/package/mcp-on-demand)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A lightweight HTTP session manager for Model Context Protocol (MCP) servers. Load MCP servers on-demand instead of keeping them in context permanently. Zero token overhead when not in use.
