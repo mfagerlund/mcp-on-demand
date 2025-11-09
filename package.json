@@ -1,6 +1,6 @@
 {
   "name": "mcp-on-demand",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Load MCP servers on-demand instead of keeping them in context permanently. Zero token overhead when not in use.",
   "type": "module",
   "main": "src/session-manager.js",
