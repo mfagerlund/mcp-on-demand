@@ -80,6 +80,17 @@ description: Brief description of what this command does
 
 Extract parameters from user message.
 
+## Discover Available Tools
+
+**IMPORTANT:** Never hardcode tool lists in commands. They will diverge from the actual MCP.
+
+When you start a session, the MCP automatically returns all available tools:
+```bash
+mcp-on-demand start mcp-name
+```
+
+Review the returned tools list to see what's available, then use the appropriate tools for your task.
+
 **Start session:**
 \```bash
 mcp-on-demand start mcp-name

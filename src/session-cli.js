@@ -43,12 +43,16 @@ if (!action) {
   console.log(`Usage: session-cli.js <action> [args]
 
 Actions:
-  start <mcp-name> [--no-show-tools]  Start an MCP session (shows tools by default)
+  start <mcp-name> [--no-show-tools]  Start an MCP session and discover available tools
   call <mcp-name> <tool> <json>       Call a tool in active session
   batch <mcp-name> <json-array>       Call multiple tools in one request
   stop <mcp-name>                     Stop an MCP session
   list                                List active sessions
   shutdown                            Shutdown session manager
+
+Tool Discovery:
+  When you start a session, it automatically queries the MCP server and displays
+  all available tools with their schemas. Use this to discover what the MCP can do.
 
 Examples:
   node src/session-cli.js start chrome-devtools-mcp

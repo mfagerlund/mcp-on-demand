@@ -85,6 +85,17 @@ description: Specific scenarios that trigger this skill. Be detailed - determine
 - Specific trigger scenario 1
 - Specific trigger scenario 2
 
+## Discover Available Tools
+
+**IMPORTANT:** Never hardcode tool lists in skills. They will diverge from the actual MCP.
+
+When you start a session, the MCP automatically returns all available tools:
+```bash
+mcp-on-demand start mcp-name
+```
+
+Review the returned tools list to see what's available, then use the appropriate tools for your task.
+
 ## Usage Pattern
 
 Extract parameters from user message.

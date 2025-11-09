@@ -108,6 +108,39 @@ Use the `mcp-on-demand` CLI to interact with MCP sessions. The CLI communicates 
 mcp-on-demand start chrome-devtools-mcp
 ```
 
+### Discovering Available Tools
+
+When you start an MCP session, the available tools are automatically displayed with their full schemas:
+
+```bash
+mcp-on-demand start chrome-devtools-mcp
+```
+
+**Output example:**
+```json
+{
+  "success": true,
+  "mcpName": "chrome-devtools-mcp",
+  "toolCount": 15,
+  "message": "Session started with 15 tools",
+  "tools": [
+    {
+      "name": "navigate_page",
+      "description": "Navigate to a URL",
+      "inputSchema": { ... }
+    },
+    ...
+  ]
+}
+```
+
+**Best practice:** Review the tools output to understand what capabilities the MCP provides, then use the appropriate tools for your task. This ensures you're always working with the current set of tools and their actual schemas.
+
+**Hide tools list:** Use `--no-show-tools` to suppress the tools output:
+```bash
+mcp-on-demand start chrome-devtools-mcp --no-show-tools
+```
+
 **Call tool:**
 ```bash
 mcp-on-demand call chrome-devtools-mcp navigate_page '{"url": "https://example.com"}'
