@@ -32,7 +32,7 @@ try {
 const [,, command, ...args] = process.argv;
 
 if (!command || command === '--help' || command === '-h') {
-  console.log(`MCP On-Demand v0.5.0
+  console.log(`MCP On-Demand v0.6.0
 
 Usage: mcp-on-demand <command> [args]
 
@@ -44,10 +44,15 @@ Commands:
   list                          List active sessions
   shutdown                      Shutdown session manager
 
+  status                        Check session manager status
   manager                       Start the session manager (background)
   setup                         Run setup/configuration
 
+Note: The session manager auto-starts when you run any command.
+      Use 'status' to check if it's running, or 'manager' to start manually.
+
 Examples:
+  mcp-on-demand status
   mcp-on-demand start chrome-devtools-mcp
   mcp-on-demand call chrome-devtools-mcp navigate_page '{"url":"https://example.com"}'
   mcp-on-demand stop chrome-devtools-mcp
@@ -69,6 +74,10 @@ switch (command) {
 
   case 'manager':
     scriptPath = join(installPath, 'src', 'session-manager.js');
+    break;
+
+  case 'status':
+    scriptPath = join(installPath, 'src', 'session-status.js');
     break;
 
   case 'start':

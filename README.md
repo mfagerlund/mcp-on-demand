@@ -48,7 +48,14 @@ A lightweight HTTP session manager for Model Context Protocol (MCP) servers. Loa
 
    **Ask the user for their MCP installation paths.** Do not assume locations.
 
-3. **Start session manager** (run once, leave running)
+3. **That's it!** The session manager auto-starts when you run any command.
+
+   To manually check status:
+   ```bash
+   mcp-on-demand status
+   ```
+
+   To manually start (only needed for troubleshooting):
    ```bash
    mcp-on-demand manager &
    ```
@@ -102,6 +109,11 @@ Binary MCP:
 
 
 Use the `mcp-on-demand` CLI to interact with MCP sessions. The CLI communicates with the session manager via HTTP API on `http://127.0.0.1:9876`.
+
+**Check status:**
+```bash
+mcp-on-demand status
+```
 
 **Start MCP session:**
 ```bash
@@ -221,13 +233,7 @@ Error:
 ### Example: Web Debugging Workflow
 
 ```bash
-# Ensure session manager is running
-mcp-on-demand list || {
-  mcp-on-demand manager &
-  sleep 2
-}
-
-# Start chrome-devtools-mcp session
+# Start chrome-devtools-mcp session (daemon auto-starts if needed)
 mcp-on-demand start chrome-devtools-mcp
 
 # Execute debugging workflow
@@ -325,12 +331,17 @@ mcp-on-demand/
 
 ### Troubleshooting
 
+**Check daemon status:**
+```bash
+mcp-on-demand status
+```
+
 **Session manager not responding?**
 ```bash
-rm ~/.mcp-on-demand/session.json
-mcp-on-demand manager &
-sleep 2
-mcp-on-demand list
+# The daemon auto-starts, but if you have issues:
+mcp-on-demand shutdown  # Stop any existing daemon
+rm ~/.mcp-on-demand/session.json  # Clean up stale session file
+mcp-on-demand start <mcp-name>  # Will auto-start fresh daemon
 ```
 
 **MCP won't start?**

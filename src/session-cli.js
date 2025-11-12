@@ -1,14 +1,143 @@
 #!/usr/bin/env node
-import { readFile } from 'fs/promises';
+import { readFile, writeFile, unlink } from 'fs/promises';
 import { existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { spawn } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const STATE_DIR = join(process.env.HOME || process.env.USERPROFILE, '.mcp-on-demand');
 const SESSION_FILE = join(STATE_DIR, 'session.json');
+const LOCK_FILE = join(STATE_DIR, 'daemon.lock');
+const PORT = 9876;
+
+async function startDaemon() {
+  const sessionManagerPath = join(__dirname, 'session-manager.js');
+  const isWindows = process.platform === 'win32';
+
+  const spawnOptions = {
+    detached: true,
+    stdio: 'ignore',
+    ...(isWindows && { shell: true })
+  };
+
+  const daemon = spawn('node', [sessionManagerPath], spawnOptions);
+  daemon.unref();
+
+  console.log(`Session manager starting (PID ${daemon.pid})...`);
+
+  // Wait for daemon to be ready (up to 10 seconds)
+  for (let i = 0; i < 20; i++) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    if (existsSync(SESSION_FILE)) {
+      // Verify it's actually responsive
+      try {
+        const sessionInfo = JSON.parse(await readFile(SESSION_FILE, 'utf-8'));
+        const url = `http://127.0.0.1:${sessionInfo.port}/health`;
+        const response = await fetch(url, { signal: AbortSignal.timeout(2000) });
+
+        if (response.ok) {
+          console.log('Session manager ready');
+          return true;
+        }
+      } catch (err) {
+        // Not ready yet, keep waiting
+      }
+    }
+  }
+
+  throw new Error('Session manager failed to start within 10 seconds');
+}
+
+async function ensureDaemonRunning() {
+  // Check if session manager is running
+  if (!existsSync(SESSION_FILE)) {
+    console.log('Session manager not running, starting it...');
+
+    // Check for lock file to prevent race condition
+    if (existsSync(LOCK_FILE)) {
+      console.log('Another process is starting the daemon, waiting...');
+      // Wait for the other process to finish (up to 15 seconds)
+      for (let i = 0; i < 30; i++) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (existsSync(SESSION_FILE)) {
+          console.log('Session manager is now ready');
+          return true;
+        }
+      }
+      throw new Error('Timed out waiting for daemon to start');
+    }
+
+    // Create lock file
+    try {
+      await writeFile(LOCK_FILE, process.pid.toString());
+    } catch (err) {
+      // Another process might have created it first
+      if (existsSync(LOCK_FILE)) {
+        console.log('Another process is starting the daemon, waiting...');
+        for (let i = 0; i < 30; i++) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+          if (existsSync(SESSION_FILE)) {
+            console.log('Session manager is now ready');
+            return true;
+          }
+        }
+        throw new Error('Timed out waiting for daemon to start');
+      }
+      throw err;
+    }
+
+    try {
+      await startDaemon();
+    } finally {
+      // Clean up lock file
+      try {
+        if (existsSync(LOCK_FILE)) {
+          await unlink(LOCK_FILE);
+        }
+      } catch (err) {
+        // Ignore cleanup errors
+      }
+    }
+    return true;
+  }
+
+  // Verify it's actually responsive
+  try {
+    const sessionInfo = JSON.parse(await readFile(SESSION_FILE, 'utf-8'));
+    const url = `http://127.0.0.1:${sessionInfo.port}/health`;
+    const response = await fetch(url, { signal: AbortSignal.timeout(2000) });
+
+    if (response.ok) {
+      return true; // Daemon is running and responsive
+    }
+  } catch (err) {
+    console.log('Session manager not responsive, restarting...');
+
+    // Clean up stale session file
+    try {
+      if (existsSync(SESSION_FILE)) {
+        await unlink(SESSION_FILE);
+      }
+    } catch (err) {
+      // Ignore cleanup errors
+    }
+  }
+
+  return await ensureDaemonRunning(); // Retry
+}
 
 async function sendCommand(command) {
-  if (!existsSync(SESSION_FILE)) {
-    console.error('Session manager not running. Start it with: node src/session-manager.js');
+  // Ensure daemon is running before sending command
+  try {
+    await ensureDaemonRunning();
+  } catch (err) {
+    console.error('Failed to start session manager:', err.message);
+    console.error('');
+    console.error('You can try starting it manually with:');
+    console.error('  mcp-on-demand manager &');
     process.exit(1);
   }
 
@@ -32,7 +161,11 @@ async function sendCommand(command) {
     console.log(JSON.stringify(result, null, 2));
   } catch (err) {
     console.error('Failed to connect to session manager:', err.message);
-    console.error('Is the session manager running?');
+    console.error('');
+    console.error('The session manager may have crashed or stopped.');
+    console.error('Restart it with: mcp-on-demand manager');
+    console.error('');
+    console.error('Check status: curl http://127.0.0.1:9876/health');
     process.exit(1);
   }
 }
