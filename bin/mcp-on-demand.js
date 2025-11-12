@@ -32,7 +32,7 @@ try {
 const [,, command, ...args] = process.argv;
 
 if (!command || command === '--help' || command === '-h') {
-  console.log(`MCP On-Demand v0.6.0
+  console.log(`MCP On-Demand v0.7.0
 
 Usage: mcp-on-demand <command> [args]
 
