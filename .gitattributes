@@ -1,0 +1,4 @@
+# JS files must check out with LF. `npm publish` ships the working tree, and a
+# CRLF on the `#!/usr/bin/env node` shebang in bin/mcp-on-demand.js breaks the
+# CLI on Linux/macOS with: bad interpreter: /usr/bin/env node^M
+*.js text eol=lf
