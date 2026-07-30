@@ -10,3 +10,9 @@ test-script.js
 # Git files
 .git
 .gitignore
+.gitattributes
+
+# Runtime output. .npmignore overrides .gitignore entirely, so files ignored
+# by git are still packed unless listed here — session-manager.log was being
+# published with local paths in it.
+*.log

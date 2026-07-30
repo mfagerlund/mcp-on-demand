@@ -1,6 +1,6 @@
 {
   "name": "mcp-on-demand",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Load MCP servers on-demand instead of keeping them in context permanently. Zero token overhead when not in use.",
   "type": "module",
   "main": "src/session-manager.js",
@@ -15,7 +15,14 @@
     "cli": "node src/session-cli.js",
     "call": "node scripts/mcp-call.js"
   },
-  "keywords": ["mcp", "model-context-protocol", "on-demand", "dynamic", "context-efficient", "claude-code"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "on-demand",
+    "dynamic",
+    "context-efficient",
+    "claude-code"
+  ],
   "author": "Mattias Fagerlund",
   "license": "MIT",
   "repository": {
